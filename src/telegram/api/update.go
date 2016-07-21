@@ -1,14 +1,20 @@
 package api
 
+// Request for updates for this bot
+// This is main API method for polling
+// Note that update fields are case-sensitive so denote them correctly
 type GetUpdatesRequest struct {
-    offset int // last update_id known to server
-    limit int  // optional, from 1 to 100
-    timeout int // timeout for polling (usually 0)
+    // last update_id known to server
+    Offset int64    `json:"offset"`
+    // optional, from 1 to 100
+    Limit int       `json:"limit,omitempty"`
+    // timeout for polling (usually 0)
+    Timeout int     `json:"timeout,omitempty"`
 }
 
 type GetUpdatesResponse struct {
     Ok bool
-    result []Update
+    Result []Update
 }
 
 type Update struct {
@@ -16,39 +22,39 @@ type Update struct {
     // This ID becomes especially handy if you’re using Webhooks,
     // since it allows you to ignore repeated updates or to restore the correct update sequence,
     // should they get out of order.
-    update_id int 
+    Update_id int64
     // Optional. New incoming message of any kind — text, photo, sticker, etc.
-    message Message 
+    Message Message 
     // Optional. New version of a message that is known to the bot and was edited
-    edited_message Message 
+    Edited_message Message 
     // Optional. New incoming inline query
-    inline_query InlineQuery 
+    Inline_query InlineQuery 
     // Optional. The result of an inline query that was chosen by a user and sent to their chat partner.
-    chosen_inline_result ChosenInlineResult 
+    Chosen_inline_result ChosenInlineResult 
     // Optional. New incoming callback query
-    callback_query CallbackQuery 
+    Callback_query CallbackQuery 
 }
 
 type CallbackQuery struct {
     // Unique identifier for this query
-    id string 
+    Id string 
     // Sender
-    from User 
+    From User 
     // Optional. Message with the callback button that originated the query.
     // Note that message content and message date will not be available if the message is too old
-    message Message 
+    Message Message 
     // Optional. Identifier of the message sent via the bot in inline mode, that originated the query
-    inline_message_id string 
+    Inline_message_id string 
     // Data associated with the callback button. Be aware that a bad client can send arbitrary data in this field
-    data string 
+    Data string 
 }
 
 type ForceReply struct {
     // Shows reply interface to the user, as if they manually selected the bot‘s message and tapped ’Reply'
-    force_reply bool 
+    Force_reply bool 
     // Optional. Use this parameter if you want to force reply from specific users only.
     // Targets:
     //      1) users that are @mentioned in the text of the Message object;
     //      2) if the bot's message is a reply (has reply_to_message_id), sender of the original message.
-    selective bool 
+    Selective bool 
 }

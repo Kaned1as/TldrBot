@@ -1,8 +1,12 @@
 package api
 
 type User struct {
-    id int `desc:"Unique identifier for this user or bot"`
-    first_name string `desc:"User‘s or bot’s first name"`
-    last_name string `desc:"Optional. User‘s or bot’s last name"`
-    username string `desc:"Optional. User‘s or bot’s username"`
+    // Unique identifier for this user or bot
+    Id int 
+    // User‘s or bot’s first name
+    First_name string 
+    // Optional. User‘s or bot’s last name
+    Last_name string 
+    // Optional. User‘s or bot’s username
+    Username string 
 }
