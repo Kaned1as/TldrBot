@@ -19,7 +19,7 @@ type ChosenInlineResult struct {
     // The user that chose the result
     From User 
     // Optional. Sender location, only for bots that require user location
-    Location Location 
+    Location *Location
     // Optional. Identifier of the sent inline message.
     // Available only if there is an inline keyboard attached to the message.
     // Will be also received in callback queries and can be used to edit the message.

@@ -10,44 +10,44 @@ type Message struct {
     // Conversation the message belongs to
     Chat Chat 
     // Optional. For forwarded messages, sender of the original message
-    Forward_from User 
+    Forward_from *User
     // Optional. For messages forwarded from a channel, information about the original channel
-    Forward_from_chat Chat 
+    Forward_from_chat *Chat
     // Optional. For forwarded messages, date the original message was sent in Unix time
-    Forward_date int 
+    Forward_date *int
     // Optional. For replies, the original message. Note that the Message object in this field
     // will not contain further reply_to_message fields even if it itself is a reply.
-    //Reply_to_message Message
+    Reply_to_message *Message
     // Optional. Date the message was last edited in Unix time
-    Edit_date int 
+    Edit_date *int
     // Optional. For text messages, the actual UTF-8 text of the message, 0-4096 characters.
-    Text string 
+    Text string
     // Optional. For text messages, special entities like usernames, URLs, bot commands, etc. that appear in the text
-    Entities []MessageEntity 
+    Entities []MessageEntity
     // Optional. Message is an audio file, information about the file
-    Audio Audio 
+    Audio *Audio
     // Optional. Message is a general file, information about the file
-    Document Document 
+    Document *Document
     // Optional. Message is a photo, available sizes of the photo
     Photo []PhotoSize 
     // Optional. Message is a sticker, information about the sticker
-    Sticker Sticker 
+    Sticker *Sticker
     // Optional. Message is a video, information about the video
-    Video Video 
+    Video *Video
     // Optional. Message is a voice message, information about the file
-    Voice Voice 
+    Voice *Voice
     // Optional. Caption for the document, photo or video, 0-200 characters
     Caption string 
     // Optional. Message is a shared contact, information about the contact
-    Contact Contact 
+    Contact *Contact
     // Optional. Message is a shared location, information about the location
-    Location Location 
+    Location *Location
     // Optional. Message is a venue, information about the venue
-    Venue Venue 
+    Venue *Venue
     // Optional. A new member was added to the group, information about them (this member may be the bot itself)
-    New_chat_member User 
+    New_chat_member *User
     // Optional. A member was removed from the group, information about them (this member may be the bot itself)
-    Left_chat_member User 
+    Left_chat_member *User
     // Optional. A chat title was changed to this value
     New_chat_title string 
     // Optional. A chat photo was change to this value
@@ -80,7 +80,7 @@ type Message struct {
     // Optional. Specified message was pinned.
     // Note that the Message object in this field will not contain further reply_to_message
     // fields even if it is itself a reply.
-    //Pinned_message Message
+    Pinned_message *Message
 }
 
 type MessageEntity struct {
@@ -93,7 +93,7 @@ type MessageEntity struct {
     // Optional. For “text_link” only, url that will be opened after user taps on the text
     Url string 
     // Optional. For “text_mention” only, the mentioned user
-    User User 
+    User *User
 }
 
 type PhotoSize struct {

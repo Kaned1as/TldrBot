@@ -24,15 +24,15 @@ type Update struct {
     // should they get out of order.
     Update_id int64
     // Optional. New incoming message of any kind — text, photo, sticker, etc.
-    Message Message 
+    Message *Message
     // Optional. New version of a message that is known to the bot and was edited
-    Edited_message Message 
+    Edited_message *Message
     // Optional. New incoming inline query
-    Inline_query InlineQuery 
+    Inline_query *InlineQuery
     // Optional. The result of an inline query that was chosen by a user and sent to their chat partner.
-    Chosen_inline_result ChosenInlineResult 
+    Chosen_inline_result *ChosenInlineResult
     // Optional. New incoming callback query
-    Callback_query CallbackQuery 
+    Callback_query *CallbackQuery
 }
 
 type CallbackQuery struct {
