@@ -9,8 +9,8 @@ import (
     "time"
     "bytes"
     "unicode/utf16"
-    "io/ioutil"
     "log"
+    "github.com/advancedlogic/GoOse"
 )
 
 const API_ENDPOINT string = "https://api.telegram.org/bot"
@@ -22,20 +22,23 @@ const POLLING_INTERVAL = time.Millisecond * 300
 // Note: runs in its own thread
 type Poller struct {
     client http.Client
+    articleFetcher goose.Goose
     Token string
+    Msg chan string
     lastId int64
 }
 
 // starts poller
 func (poll *Poller) Start(waiter *sync.WaitGroup) {
-    defer waiter.Done()
-
     poll.client = http.Client{Timeout: time.Second * 5}
+    poll.articleFetcher = goose.New()
     ticker := time.NewTicker(POLLING_INTERVAL)
-    go poll.doWork(ticker)
+    go poll.doWork(ticker, waiter)
 }
 
-func (this *Poller) doWork(tick *time.Ticker) {
+func (this *Poller) doWork(tick *time.Ticker, waiter *sync.WaitGroup) {
+    defer waiter.Done()
+
     for time := range tick.C {
         // create request
         request := api.GetUpdatesRequest{Offset: this.lastId + 1}
@@ -98,18 +101,10 @@ func (poll *Poller) handleUpdate(update api.Update) {
     // retrieve page
     go poll.getPage(url)
 }
-func (poll *Poller) getPage(url string) {
-    resp, getErr := poll.client.Get(url)
-    if getErr != nil {
-        fmt.Println("Error retrieving url mentioned, skipping ..." + getErr.Error())
-        return
+func (poll *Poller) getPage(url string)  {
+    article, parseErr := poll.articleFetcher.ExtractFromURL(url)
+    if parseErr != nil {
+        fmt.Println("Something is wrong with this page, skipping ..." + parseErr.Error())
     }
-
-    bytes, readErr := ioutil.ReadAll(resp.Body)
-    if (readErr != nil) {
-        fmt.Println("Error reading response body!" + readErr.Error())
-        return
-    }
-
-    html := string(bytes)
+    poll.Msg <- article.CleanedText
 }

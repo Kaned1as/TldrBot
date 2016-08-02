@@ -21,12 +21,15 @@ func main() {
     join := sync.WaitGroup{}
     join.Add(2)
 
+    messages := make(chan string)
+
     // 1 - poller
-    poller := impl.Poller{Token: token}
+    poller := impl.Poller{Token: token, Msg: messages}
     poller.Start(&join)
 
     // 2 - response publisher
-    // TODO
+    summarizer := impl.Summarizer{Msg: messages}
+    summarizer.Start(&join)
 
     join.Wait()
 }
