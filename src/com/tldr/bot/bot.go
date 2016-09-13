@@ -15,16 +15,16 @@ func main() {
         return
     }
 
-    token := string(bytes)
-    fmt.Println("Starting to work with bot token: " + token)
+    impl.BOT_TOKEN = string(bytes)
+    fmt.Println("Starting to work with bot token: " + impl.BOT_TOKEN)
 
     join := sync.WaitGroup{}
     join.Add(2)
 
-    messages := make(chan string)
+    messages := make(chan impl.CaughtUrl)
 
     // 1 - poller
-    poller := impl.Poller{Token: token, Msg: messages}
+    poller := impl.Poller{Msg: messages}
     poller.Start(&join)
 
     // 2 - response publisher

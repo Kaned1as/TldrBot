@@ -11,11 +11,9 @@ import (
     "unicode/utf16"
     "log"
     "github.com/advancedlogic/GoOse"
+    "strings"
+    "unicode/utf8"
 )
-
-const API_ENDPOINT string = "https://api.telegram.org/bot"
-const GET_UPDATES_PATH = "/getUpdates"
-const POLLING_INTERVAL = time.Millisecond * 300
 
 // Poller for bot updates
 // repeatedly retrieves updates from the telegram server and updates its read position
@@ -23,8 +21,7 @@ const POLLING_INTERVAL = time.Millisecond * 300
 type Poller struct {
     client http.Client
     articleFetcher goose.Goose
-    Token string
-    Msg chan string
+    Msg chan CaughtUrl
     lastId int64
 }
 
@@ -43,7 +40,7 @@ func (this *Poller) doWork(tick *time.Ticker, waiter *sync.WaitGroup) {
         // create request
         request := api.GetUpdatesRequest{Offset: this.lastId + 1}
         body, _ := json.Marshal(request)
-        req, createErr := http.NewRequest("POST", API_ENDPOINT + this.Token + GET_UPDATES_PATH, bytes.NewBuffer(body))
+        req, createErr := http.NewRequest("POST", API_ENDPOINT + BOT_TOKEN + GET_UPDATES_PATH, bytes.NewBuffer(body))
         if createErr != nil {
             log.Fatal("Error creating http request, shutting down ..." + createErr.Error())
         }
@@ -65,10 +62,13 @@ func (this *Poller) doWork(tick *time.Ticker, waiter *sync.WaitGroup) {
             continue
         }
 
+        if len(updates.Result) > 0 {
+            fmt.Printf("time: %v, updates: %#v\n", time, updates);
+        }
+
         for _, upd := range updates.Result {
             this.handleUpdate(upd)
         }
-        fmt.Printf("time: %v, updates: %#v\n", time, updates);
     }
 }
 
@@ -99,12 +99,28 @@ func (poll *Poller) handleUpdate(update api.Update) {
     fmt.Printf("Got message with URL: %#v\n", url);
 
     // retrieve page
-    go poll.getPage(url)
+    go poll.handlePage(url, &msg.Chat)
 }
-func (poll *Poller) getPage(url string)  {
+
+func newlineOrComma(r rune) bool {
+    return r == '.' || r == '\n'
+}
+
+func (poll *Poller) handlePage(url string, chat *api.Chat)  {
     article, parseErr := poll.articleFetcher.ExtractFromURL(url)
     if parseErr != nil {
         fmt.Println("Something is wrong with this page, skipping ..." + parseErr.Error())
     }
-    poll.Msg <- article.CleanedText
+
+    mainContent := article.CleanedText
+    sentences := strings.FieldsFunc(mainContent, newlineOrComma)
+    valuableSentences := []string{}
+    for _, sentence := range sentences {
+        if (utf8.RuneCountInString(sentence) > 5 && utf8.RuneCountInString(sentence) < 70) {
+            continue  // too short sentence can be addressing like Mr. or Jr.
+        }
+        valuableSentences = append(valuableSentences, sentence)
+    }
+
+    poll.Msg <- CaughtUrl{strings.Join(valuableSentences, "."), chat}
 }
