@@ -2,11 +2,11 @@ package api
 
 type Message struct {
     // Unique message identifier
-    Message_id int 
+    Message_id int64
     // Optional. Sender, can be empty for messages sent to channels
     From User 
     // Date the message was sent in Unix time
-    Date int 
+    Date int64
     // Conversation the message belongs to
     Chat Chat 
     // Optional. For forwarded messages, sender of the original message
@@ -14,12 +14,12 @@ type Message struct {
     // Optional. For messages forwarded from a channel, information about the original channel
     Forward_from_chat *Chat
     // Optional. For forwarded messages, date the original message was sent in Unix time
-    Forward_date *int
+    Forward_date *int64
     // Optional. For replies, the original message. Note that the Message object in this field
     // will not contain further reply_to_message fields even if it itself is a reply.
     Reply_to_message *Message
     // Optional. Date the message was last edited in Unix time
-    Edit_date *int
+    Edit_date *int64
     // Optional. For text messages, the actual UTF-8 text of the message, 0-4096 characters.
     Text string
     // Optional. For text messages, special entities like usernames, URLs, bot commands, etc. that appear in the text
@@ -85,13 +85,13 @@ type Message struct {
 
 type MessageEntity struct {
     // Type of the entity. Can be mention (@username), hashtag, bot_command, url, email, bold (bold text), italic (italic text), code (monowidth string), pre (monowidth block), text_link (for clickable text URLs), text_mention (for users without usernames)
-    Type string 
+    Type string
     // Offset in UTF-16 code units to the start of the entity
-    Offset int 
+    Offset int64
     // Length of the entity in UTF-16 code units
-    Length int 
+    Length int64
     // Optional. For “text_link” only, url that will be opened after user taps on the text
-    Url string 
+    Url string
     // Optional. For “text_mention” only, the mentioned user
     User *User
 }
@@ -100,18 +100,18 @@ type PhotoSize struct {
     // Unique identifier for this file
     File_id string 
     // Photo width
-    Width int 
+    Width int
     // Photo height
-    Height int 
+    Height int
     // Optional. File size
-    File_size int 
+    File_size int64
 }
 
 type Audio struct {
     // Unique identifier for this file
     File_id string 
     // Duration of the audio in seconds as defined by sender
-    Duration int 
+    Duration int
     // Optional. Performer of the audio as defined by sender or by audio tags
     Performer string 
     // Optional. Title of the audio as defined by sender or by audio tags
@@ -119,50 +119,50 @@ type Audio struct {
     // Optional. MIME type of the file as defined by sender
     Mime_type string 
     // Optional. File size
-    File_size int 
+    File_size int64
 }
 
 type Voice struct {
     // Unique identifier for this file
     File_id string 
     // Duration of the audio in seconds as defined by sender
-    Duration int 
+    Duration int
     // Optional. MIME type of the file as defined by sender
     Mime_type string 
     // Optional. File size
-    File_size int 
+    File_size int64
 }
 
 type Video struct {
     // Unique identifier for this file
     File_id string 
     // Video width as defined by sender
-    Width int 
+    Width int
     // Video height as defined by sender
-    Height int 
+    Height int
     // Duration of the video in seconds as defined by sender
-    Duration int 
+    Duration int
     // Optional. Video thumbnail
     Thumb PhotoSize 
     // Optional. Mime type of a file as defined by sender
     Mime_type string 
     // Optional. File size
-    File_size int 
+    File_size int64
 }
 
 type Sticker struct {
     // Unique identifier for this file
     File_id string 
     // Sticker width
-    Width int 
+    Width int
     // Sticker height
-    Height int 
+    Height int
     // Optional. Sticker thumbnail in .webp or .jpg format
     Thumb PhotoSize 
     // Optional. Emoji associated with the sticker
     Emoji string 
     // Optional. File size
-    File_size int 
+    File_size int64
 }
 
 type Document struct {
@@ -175,7 +175,7 @@ type Document struct {
     // Optional. MIME type of the file as defined by sender
     Mime_type string 
     // Optional. File size
-    File_size int 
+    File_size int64
 }
 
 type Contact struct {
@@ -186,7 +186,7 @@ type Contact struct {
     // Optional. Contact's last name
     Last_name string 
     // Optional. Contact's user identifier in Telegram
-    User_id int 
+    User_id int64
 }
 
 type Location struct {

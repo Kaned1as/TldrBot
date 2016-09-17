@@ -5,7 +5,7 @@ type Chat struct {
     // and some programming languages may have difficulty/silent defects in interpreting it.
     // But it smaller than 52 bits, so a signed 64 bit integer or double-precision float type
     // are safe for storing this identifier.
-    Id int 
+    Id int64
     // Type of chat, can be either “private”, “group”, “supergroup” or “channel”
     Type string 
     // Optional. Title, for channels and group chats
