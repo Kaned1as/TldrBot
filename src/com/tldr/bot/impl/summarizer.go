@@ -24,7 +24,7 @@ type Summarizer struct {
 }
 
 func (summ *Summarizer) Start(waiter *sync.WaitGroup) {
-    summ.sentCount = 3
+    summ.sentCount = 5
     summ.client = http.Client{Timeout: time.Second * 5}
 
     go summ.doWork(waiter)

@@ -11,8 +11,7 @@ import (
     "unicode/utf16"
     "log"
     "github.com/advancedlogic/GoOse"
-    "strings"
-    "unicode/utf8"
+    "regexp"
 )
 
 // Poller for bot updates
@@ -30,6 +29,7 @@ func (poll *Poller) Start(waiter *sync.WaitGroup) {
     poll.client = http.Client{Timeout: time.Second * 5}
     poll.articleFetcher = goose.New()
     ticker := time.NewTicker(POLLING_INTERVAL)
+
     go poll.doWork(ticker, waiter)
 }
 
@@ -102,25 +102,23 @@ func (poll *Poller) handleUpdate(update api.Update) {
     go poll.handlePage(url, &msg.Chat)
 }
 
-func newlineOrComma(r rune) bool {
-    return r == '.' || r == '\n'
-}
-
 func (poll *Poller) handlePage(url string, chat *api.Chat)  {
     article, parseErr := poll.articleFetcher.ExtractFromURL(url)
     if parseErr != nil {
         fmt.Println("Something is wrong with this page, skipping ..." + parseErr.Error())
+        return
+    }
+
+    // we don't want excessive newlines in bot's answer
+    endlRegex, err := regexp.Compile("[\r\n]+")
+    if err != nil {
+        fmt.Println("Error compiling regex ..." + err.Error())
+        return
     }
 
     mainContent := article.CleanedText
-    sentences := strings.FieldsFunc(mainContent, newlineOrComma)
-    valuableSentences := []string{}
-    for _, sentence := range sentences {
-        if (utf8.RuneCountInString(sentence) > 5 && utf8.RuneCountInString(sentence) < 70) {
-            continue  // too short sentence can be addressing like Mr. or Jr.
-        }
-        valuableSentences = append(valuableSentences, sentence)
-    }
+    sentences := endlRegex.ReplaceAllString(mainContent, "\n") // replace with single newline
+    fmt.Println(sentences)
 
-    poll.Msg <- CaughtUrl{strings.Join(valuableSentences, "."), chat}
+    poll.Msg <- CaughtUrl{sentences, chat}
 }
