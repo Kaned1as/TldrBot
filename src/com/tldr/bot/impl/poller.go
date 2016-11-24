@@ -10,13 +10,24 @@ import (
     "time"
     "bytes"
     "log"
+    "unicode/utf8"
+    "io"
+    "os"
 )
 
 const API_ENDPOINT string = "https://api.telegram.org/bot"
 const GET_UPDATES_PATH = "/getUpdates"
 const POLLING_INTERVAL = time.Millisecond * 300
 
-var /* const */ LEET_REGEX = regexp.MustCompile("0000+|0123|1111+|1234|1337|2222+|2345")
+var /* const */ LEET_REGEX = []*regexp.Regexp {
+    regexp.MustCompile("0000(0*)"),
+    regexp.MustCompile("0123(4?5?6?7?8?9?)"),
+    regexp.MustCompile("1111(1*)"),
+    regexp.MustCompile("1234(5?6?7?8?9?)"),
+    regexp.MustCompile("1337"),
+    regexp.MustCompile("2222(2*)"),
+    regexp.MustCompile("2345(6?7?8?9?)"),
+}
 
 // Poller for bot updates
 // repeatedly retrieves updates from the telegram server and updates its read position
@@ -24,7 +35,6 @@ var /* const */ LEET_REGEX = regexp.MustCompile("0000+|0123|1111+|1234|1337|2222
 type Poller struct {
     client http.Client
     Token string
-    MsgChannel chan *api.Message
     lastId int64
 }
 
@@ -99,7 +109,42 @@ func (poll *Poller) handleUpdate(update api.Update) {
     fmt.Printf("Got message with text: %#v\n", msg.Text);
     
     // make sure it's l33t msg
-    if LEET_REGEX.MatchString(msg.Text) {
-        poll.MsgChannel <- msg;
+    for _, regex := range LEET_REGEX {
+        matches := regex.FindStringSubmatch(msg.Text)
+        if matches == nil {
+            continue
+        }
+
+        fullMatch := matches[0]
+        matched := utf8.RuneCountInString(fullMatch)
+        if matched < 4 {
+            continue // should not happen
+        }
+
+        // someone has scored, kudos to him
+        go poll.handleL33t(msg, fullMatch)
+        return
     }
+}
+
+func (poll *Poller) handleL33t(msg *api.Message, match string) {
+    disablePreview := new(bool); *disablePreview = true
+    request := api.SendMessage{Text: summary, ChatId: chat.Id, ParseMode: "Markdown",  DisableWebPagePreview: disablePreview}
+    body, _ := json.Marshal(request)
+    req, createErr := http.NewRequest("POST", API_ENDPOINT + BOT_TOKEN + SEND_MESSAGE_PATH, bytes.NewBuffer(body))
+    if createErr != nil {
+        log.Fatal("Error creating http request, shutting down ..." + createErr.Error())
+    }
+
+    // call to server
+    req.Header.Set("Content-Type", "application/json")
+    resp, postErr := summ.client.Do(req)
+    if postErr != nil {
+        fmt.Println("Something is wrong with Telegram servers ..." + postErr.Error())
+        return
+    }
+
+    defer resp.Body.Close()
+    fmt.Println(resp.Status)
+    io.Copy(os.Stdout, resp.Body)
 }
