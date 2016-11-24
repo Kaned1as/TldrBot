@@ -6,6 +6,6 @@ type SendMessage struct {
     ParseMode               string      `json:"parse_mode,omitempty"`
     DisableWebPagePreview   *bool       `json:"disable_web_page_preview"`
     DisableNotification     *bool       `json:"disable_notification"`
-    ReplyToMessageId        *int        `json:"reply_to_message_id"`
+    ReplyToMessageId        *int64      `json:"reply_to_message_id"`
     //ReplyMarkup *
 }

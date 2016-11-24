@@ -15,10 +15,6 @@ import (
     "os"
 )
 
-const API_ENDPOINT string = "https://api.telegram.org/bot"
-const GET_UPDATES_PATH = "/getUpdates"
-const POLLING_INTERVAL = time.Millisecond * 300
-
 var /* const */ LEET_REGEX = []*regexp.Regexp {
     regexp.MustCompile("0000(0*)"),
     regexp.MustCompile("0123(4?5?6?7?8?9?)"),
@@ -88,23 +84,9 @@ func (poll *Poller) handleUpdate(update api.Update) {
 
     // we're interested only in messages
     msg := update.Message
-    if (msg == nil) {
+    if (msg == nil || msg.Text == "") {
         return // not message update, skip
     }
-
-    //for _, entity := range msg.Entities {
-    //    if entity.Type == "url" {
-    //        textAsUtf16 := utf16.Encode([]rune(msg.Text))
-    //        urlAsUtf16 := textAsUtf16[entity.Offset:entity.Offset + entity.Length]
-    //        url = string(utf16.Decode(urlAsUtf16))
-    //        break // we need only first URL we encounter
-    //    }
-    // }
-    
-    if msg.Text == "" {
-        return;
-    }
-
 
     fmt.Printf("Got message with text: %#v\n", msg.Text);
     
@@ -115,21 +97,33 @@ func (poll *Poller) handleUpdate(update api.Update) {
             continue
         }
 
-        fullMatch := matches[0]
-        matched := utf8.RuneCountInString(fullMatch)
-        if matched < 4 {
-            continue // should not happen
-        }
-
         // someone has scored, kudos to him
-        go poll.handleL33t(msg, fullMatch)
+        go poll.handleL33t(msg, matches[0], regex)
         return
     }
 }
 
-func (poll *Poller) handleL33t(msg *api.Message, match string) {
+func (poll *Poller) handleL33t(msg *api.Message, scored string, regex *regexp.Regexp) {
+    timeStr := time.Now().Format("20060201150405")
+    match := regex.FindStringSubmatch(timeStr)
+    if match == nil {
+        return // not enough to be l33t!
+    }
+    scoredSize := utf8.RuneCountInString(scored) // e.g. we sent 111111 - wanted to score 11 seconds too, it'll be 6
+    matchedSize := utf8.RuneCountInString(match[0]) // if time is 11:11:12 we'll get only 5
+    totalMatched := min(scoredSize, matchedSize)
+
     disablePreview := new(bool); *disablePreview = true
-    request := api.SendMessage{Text: summary, ChatId: chat.Id, ParseMode: "Markdown",  DisableWebPagePreview: disablePreview}
+    report := fmt.Sprintf("%s is a l33t now, scored %d points, current time is %s",
+        msg.Contact.First_name,
+        totalMatched,
+        time.Now().String())
+    request := api.SendMessage{
+        Text: report,
+        ChatId: msg.Chat.Id,
+        ParseMode: "Markdown",
+        ReplyToMessageId: &msg.Message_id,
+        DisableWebPagePreview: disablePreview}
     body, _ := json.Marshal(request)
     req, createErr := http.NewRequest("POST", API_ENDPOINT + BOT_TOKEN + SEND_MESSAGE_PATH, bytes.NewBuffer(body))
     if createErr != nil {
@@ -138,7 +132,7 @@ func (poll *Poller) handleL33t(msg *api.Message, match string) {
 
     // call to server
     req.Header.Set("Content-Type", "application/json")
-    resp, postErr := summ.client.Do(req)
+    resp, postErr := poll.client.Do(req)
     if postErr != nil {
         fmt.Println("Something is wrong with Telegram servers ..." + postErr.Error())
         return
