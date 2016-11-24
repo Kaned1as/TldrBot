@@ -2,36 +2,35 @@ package impl
 
 import (
     "fmt"
+    "regexp"
     "encoding/json"
     "telegram/api"
     "sync"
     "net/http"
     "time"
     "bytes"
-    "unicode/utf16"
     "log"
-    "github.com/advancedlogic/GoOse"
 )
 
 const API_ENDPOINT string = "https://api.telegram.org/bot"
 const GET_UPDATES_PATH = "/getUpdates"
 const POLLING_INTERVAL = time.Millisecond * 300
 
+var /* const */ LEET_REGEX = regexp.MustCompile("0000+|0123|1111+|1234|1337|2222+|2345")
+
 // Poller for bot updates
 // repeatedly retrieves updates from the telegram server and updates its read position
 // Note: runs in its own thread
 type Poller struct {
     client http.Client
-    articleFetcher goose.Goose
     Token string
-    Msg chan string
+    MsgChannel chan *api.Message
     lastId int64
 }
 
 // starts poller
 func (poll *Poller) Start(waiter *sync.WaitGroup) {
     poll.client = http.Client{Timeout: time.Second * 5}
-    poll.articleFetcher = goose.New()
     ticker := time.NewTicker(POLLING_INTERVAL)
     go poll.doWork(ticker, waiter)
 }
@@ -83,28 +82,24 @@ func (poll *Poller) handleUpdate(update api.Update) {
         return // not message update, skip
     }
 
-    var url string
-    for _, entity := range msg.Entities {
-        if entity.Type == "url" {
-            textAsUtf16 := utf16.Encode([]rune(msg.Text))
-            urlAsUtf16 := textAsUtf16[entity.Offset:entity.Offset + entity.Length]
-            url = string(utf16.Decode(urlAsUtf16))
-            break // we need only first URL we encounter
-        }
+    //for _, entity := range msg.Entities {
+    //    if entity.Type == "url" {
+    //        textAsUtf16 := utf16.Encode([]rune(msg.Text))
+    //        urlAsUtf16 := textAsUtf16[entity.Offset:entity.Offset + entity.Length]
+    //        url = string(utf16.Decode(urlAsUtf16))
+    //        break // we need only first URL we encounter
+    //    }
+    // }
+    
+    if msg.Text == "" {
+        return;
     }
 
-    if url == "" {
-        return // no URLs found
-    }
-    fmt.Printf("Got message with URL: %#v\n", url);
 
-    // retrieve page
-    go poll.getPage(url)
-}
-func (poll *Poller) getPage(url string)  {
-    article, parseErr := poll.articleFetcher.ExtractFromURL(url)
-    if parseErr != nil {
-        fmt.Println("Something is wrong with this page, skipping ..." + parseErr.Error())
+    fmt.Printf("Got message with text: %#v\n", msg.Text);
+    
+    // make sure it's l33t msg
+    if LEET_REGEX.MatchString(msg.Text) {
+        poll.MsgChannel <- msg;
     }
-    poll.Msg <- article.CleanedText
 }

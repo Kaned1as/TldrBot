@@ -1,35 +1,36 @@
 package impl
 
 import (
-    "github.com/JesusIslam/tldr"
     "sync"
     "fmt"
+    "time"
+    "unicode/utf8"
+    "telegram/api"
 )
 
 type Summarizer struct {
     // sentence count to split up to
     sentCount int
-    bag *tldr.Bag
-    Msg chan string
+    MsgChannel chan *api.Message
 }
 
 func (summ *Summarizer) Start(waiter *sync.WaitGroup) {
-    summ.bag = tldr.New()
-    summ.sentCount = 5
-
     go summ.doWork(waiter)
 }
 
 func (summ *Summarizer) doWork(waiter *sync.WaitGroup) {
     defer waiter.Done()
     answerCount := 0
-    for text := range summ.Msg {
-        summary, err := summ.bag.Summarize(text, summ.sentCount)
-        if (err != nil) {
-            fmt.Println("Error inlining summary ..." + err.Error())
-            continue
+    for msg := range summ.MsgChannel {
+        timeStr := time.Now().Format("20060201150405")
+
+        matchLen := 0
+        matchIdx := 0 // index in incoming string
+        for _, matchChar := range timeStr {
+
         }
-        fmt.Printf("Summarize ID %#v \n", answerCount)
+        fmt.Printf("Get ID %#v \n", answerCount)
+        answerCount++
         go postWork(summary)
     }
 }
