@@ -115,7 +115,7 @@ func (poll *Poller) handleL33t(msg *api.Message, scored string, regex *regexp.Re
 
     disablePreview := new(bool); *disablePreview = true
     report := fmt.Sprintf("%s is a l33t now, scored %d points, current time is %s",
-        msg.Contact.First_name,
+        msg.From.First_name,
         totalMatched,
         time.Now().String())
     request := api.SendMessage{
@@ -125,7 +125,7 @@ func (poll *Poller) handleL33t(msg *api.Message, scored string, regex *regexp.Re
         ReplyToMessageId: &msg.Message_id,
         DisableWebPagePreview: disablePreview}
     body, _ := json.Marshal(request)
-    req, createErr := http.NewRequest("POST", API_ENDPOINT + BOT_TOKEN + SEND_MESSAGE_PATH, bytes.NewBuffer(body))
+    req, createErr := http.NewRequest("POST", API_ENDPOINT + poll.Token + SEND_MESSAGE_PATH, bytes.NewBuffer(body))
     if createErr != nil {
         log.Fatal("Error creating http request, shutting down ..." + createErr.Error())
     }
