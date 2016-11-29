@@ -123,7 +123,9 @@ func (poll *Poller) handleL33t(msg *api.Message, scored string, regex *regexp.Re
 
     // make sure person hasn't scored this one yet...
     for _, score := range poll.scoresToday {
-        if score.PersonId == msg.From.Id && currTime.Sub(score.Time).Minutes() < 1 {
+        if score.PersonId == msg.From.Id && currTime.Sub(score.Time).Seconds() < 60 {
+            fmt.Printf("Exploit user detected: %s, score time %s, current time %s\n", 
+                msg.From.First_name, score.Time.String(), currTime.String());
             return  // diff between scores is less than minute? You dirty jackass!
         }
     }
