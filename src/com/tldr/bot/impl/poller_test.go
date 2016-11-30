@@ -11,12 +11,13 @@ func TestLeet(t *testing.T) {
 	now := time.Now()
 
     poller := Poller{}
-    poll.client = http.Client{Timeout: time.Second * 5}
-    poll.today = now
-    poll.db := newDb("/tmp/scores_test.db")
+    poller.client = http.Client{Timeout: time.Second * 5}
+    poller.today = now
+    poller.db = newDb("/tmp/scores_test.db")
 
     msg := api.Message{}
-    msg.Time = time.Date(now.Year(), now.Month(), now.Day(), 1, 2, 3, 4, time.UTC)
+    msg.Date = time.Date(now.Year(), now.Month(), now.Day(), 
+                         13, 37, 00, 0, now.Location()).Unix()
 
     poller.handleL33t(&msg, "1337", LEET_REGEX[4])
 }

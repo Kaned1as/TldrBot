@@ -108,7 +108,7 @@ func (poll *Poller) handleUpdate(update api.Update) {
 }
 
 func (poll *Poller) handleL33t(msg *api.Message, scored string, regex *regexp.Regexp) {
-    currTime := time.Unix(msg.Time)
+    currTime := time.Unix(msg.Date, 0)
 
     hmTimeStr := currTime.Format("1504")
     if !strings.HasPrefix(regex.String(), hmTimeStr) {
