@@ -15,13 +15,13 @@ func main() {
         return
     }
 
-    token := string(bytes)
-    fmt.Println("Starting to work with bot token: " + token)
+    impl.BOT_TOKEN = string(bytes)
+    fmt.Println("Starting to work with bot token: " + impl.BOT_TOKEN)
 
     join := sync.WaitGroup{}
     join.Add(1)
 
-    poller := impl.Poller{Token: token}
+    poller := impl.Poller{}
     poller.Start(&join)
 
     join.Wait()
