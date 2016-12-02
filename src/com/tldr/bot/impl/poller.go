@@ -78,6 +78,10 @@ func (poll *Poller) handleUpdate(update api.Update) {
         return // not message update, skip
     }
 
+    if msg.Text == "/stat" {
+        go poll.handleStat(msg)
+    }
+
     fmt.Printf("Got message with text: %#v\n", msg.Text)
     
     // make sure it's l33t msg
@@ -91,6 +95,43 @@ func (poll *Poller) handleUpdate(update api.Update) {
         go poll.handleL33t(msg, matches[0], regex)
         return
     }
+}
+
+func (poll *Poller) handleStat(msg *api.Message) {
+    total, highest, latest := poll.db.GetScores(msg.From.Id)
+    report := fmt.Sprintf("Stats for %s:\n\n" +
+                          "  Total scored: %d points\n\n",
+        msg.From.First_name,
+        total)
+
+    if highest != nil {
+        report += fmt.Sprint("  Highest score: %d points at %s\n\n",
+            highest.Grade,
+            highest.Time)
+    }
+
+    if (latest != nil) {
+        report += fmt.Sprintf("  Latest score: %d points at %s",
+            latest.Grade,
+            latest.Time)
+    }
+
+    disablePreview := new(bool); *disablePreview = true
+    request := api.SendMessage{
+        Text: report,
+        ChatId: msg.Chat.Id,
+        ParseMode: "Markdown",
+        ReplyToMessageId: &msg.Message_id,
+        DisableWebPagePreview: disablePreview}
+
+    resp := poll.client.SendObject(request, API_ENDPOINT + BOT_TOKEN + SEND_MESSAGE_PATH)
+    if resp == nil {
+        return // no response, should be logged
+    }
+
+    defer resp.Body.Close()
+    fmt.Println(resp.Status)
+    io.Copy(os.Stdout, resp.Body)
 }
 
 func (poll *Poller) handleL33t(msg *api.Message, scored string, regex *regexp.Regexp) {

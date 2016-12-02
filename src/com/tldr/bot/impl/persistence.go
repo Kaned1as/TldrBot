@@ -45,18 +45,20 @@ func (pl *PersistenceLayer) GetScores(personId int64) (total int64, highest *Sco
     _, err := pl.database.Select(&maxTime, "select max(Time) from scores where PersonId = ?", personId)
     checkErr(err, "Failed to select latest time of all scores")
 
-    var maxScores, latestScores []*Score
-    _, err = pl.database.Select(&maxScores, "select * from scores where Grade = ?", max)
-    checkErr(err, "Failed to select max scores")
-    _, err = pl.database.Select(&latestScores, "select * from scores where Time = ?", maxTime)
-    checkErr(err, "Failed to select latest scores")
+    if (max > 0) { // we have records for this user
+        var maxScores, latestScores []*Score
+        _, err = pl.database.Select(&maxScores, "select * from scores where Grade = ?", max)
+        checkErr(err, "Failed to select max scores")
+        _, err = pl.database.Select(&latestScores, "select * from scores where Time = ?", maxTime)
+        checkErr(err, "Failed to select latest scores")
 
-    if len(maxScores) > 0 {
-        highest = maxScores[0]
-    }
+        if len(maxScores) > 0 {
+            highest = maxScores[0]
+        }
 
-    if len(latestScores) > 0 {
-        latest = latestScores[0]
+        if len(latestScores) > 0 {
+            latest = latestScores[0]
+        }
     }
 
     return
