@@ -99,13 +99,13 @@ func (poll *Poller) handleUpdate(update api.Update) {
 
 func (poll *Poller) handleStat(msg *api.Message) {
     total, highest, latest := poll.db.GetScores(msg.From.Id)
-    report := fmt.Sprintf("Stats for %s:\n\n" +
-                          "  Total scored: %d points\n\n",
+    report := fmt.Sprintf("Stats for %s:\n" +
+                          "  Total scored: %d points\n",
         msg.From.First_name,
         total)
 
     if highest != nil {
-        report += fmt.Sprint("  Highest score: %d points at %s\n\n",
+        report += fmt.Sprintf("  Highest score: %d points at %s\n",
             highest.Grade,
             highest.Time)
     }
