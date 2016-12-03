@@ -78,7 +78,7 @@ func (poll *Poller) handleUpdate(update api.Update) {
         return // not message update, skip
     }
 
-    if msg.Text == "/stat" {
+    if msg.Text == "/stat" || msg.Text == "/stat@l33t_count_bot" {
         go poll.handleStat(msg)
     }
 
@@ -107,13 +107,13 @@ func (poll *Poller) handleStat(msg *api.Message) {
     if highest != nil {
         report += fmt.Sprintf("  Highest score: %d points at %s\n",
             highest.Grade,
-            highest.Time)
+            highest.Time.Format("2006-Jan-02 15:04:05"))
     }
 
     if (latest != nil) {
         report += fmt.Sprintf("  Latest score: %d points at %s",
             latest.Grade,
-            latest.Time)
+            latest.Time.Format("2006-Jan-02 15:04:05"))
     }
 
     disablePreview := new(bool); *disablePreview = true

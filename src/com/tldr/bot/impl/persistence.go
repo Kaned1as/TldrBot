@@ -7,6 +7,7 @@ import (
     "database/sql"
     "log"
     "os"
+    "github.com/mattn/go-sqlite3"
 )
 
 type Score struct {
@@ -40,16 +41,15 @@ func (pl *PersistenceLayer) SaveScore(score *Score) {
 func (pl *PersistenceLayer) GetScores(personId int64) (total int64, highest *Score, latest *Score) {
     total, _ = pl.database.SelectInt("select sum(Grade) from scores where PersonId = ?", personId)
     max, _ := pl.database.SelectInt("select max(Grade) from scores where PersonId = ?", personId)
-    maxTimeRows, err := pl.database.Query("select max(Time) as Time from scores where PersonId = ?", personId)
+    maxTime, err := pl.database.SelectStr("select max(Time) from scores where PersonId = ?", personId)
     checkErr(err, "Failed to select latest time of all scores")
-    defer maxTimeRows.Close()
 
     if (max > 0) { // we have records for this user
-        var maxTime *time.Time; maxTimeRows.Next(); maxTimeRows.Scan(&maxTime)
         var maxScores, latestScores []Score
         _, err = pl.database.Select(&maxScores, "select * from scores where Grade = ?", max)
         checkErr(err, "Failed to select max scores")
-        _, err = pl.database.Select(&latestScores, "select * from scores where Time = ?", maxTime)
+        t, _ := time.Parse(sqlite3.SQLiteTimestampFormats[0], maxTime)
+        _, err = pl.database.Select(&latestScores, "select * from scores where Time = ?", t)
         checkErr(err, "Failed to select latest scores")
 
         if len(maxScores) > 0 {
@@ -84,6 +84,7 @@ func initDb(path string) *gorp.DbMap {
     // use a migration tool, or create the tables via scripts
     err = dbmap.CreateTablesIfNotExists()
     checkErr(err, "Create tables failed")
+    _ = dbmap.CreateIndex() // indexes will fail
 
     return dbmap
 }
