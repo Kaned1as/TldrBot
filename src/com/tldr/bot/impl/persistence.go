@@ -41,12 +41,11 @@ func (pl *PersistenceLayer) SaveScore(score *Score) {
 func (pl *PersistenceLayer) GetScores(personId int64) (total int64, highest *Score, latest *Score) {
     total, _ = pl.database.SelectInt("select sum(Grade) from scores where PersonId = ?", personId)
     max, _ := pl.database.SelectInt("select max(Grade) from scores where PersonId = ?", personId)
-    maxTime, err := pl.database.SelectStr("select max(Time) from scores where PersonId = ?", personId)
-    checkErr(err, "Failed to select latest time of all scores")
+    maxTime, _ := pl.database.SelectStr("select max(Time) from scores where PersonId = ?", personId)
 
     if (max > 0) { // we have records for this user
         var maxScores, latestScores []Score
-        _, err = pl.database.Select(&maxScores, "select * from scores where Grade = ?", max)
+        _, err := pl.database.Select(&maxScores, "select * from scores where Grade = ?", max)
         checkErr(err, "Failed to select max scores")
         t, _ := time.Parse(sqlite3.SQLiteTimestampFormats[0], maxTime)
         _, err = pl.database.Select(&latestScores, "select * from scores where Time = ?", t)
