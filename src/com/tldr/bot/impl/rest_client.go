@@ -11,6 +11,8 @@ import (
 
 type TelegramRestClient interface {
     GetUpdates(lastId int64) *api.GetUpdatesResponse
+    GetChat(chatId int64) *api.Chat
+    GetChatMember(chatId int64, userId int64) *api.ChatMember
     SendObject(request interface{}, url string) *http.Response
 }
 
@@ -36,6 +38,54 @@ func (client *BotRestClient) GetUpdates(lastId int64) *api.GetUpdatesResponse {
     }
 
     return &updates
+}
+
+func (client *BotRestClient) GetChat(chatId int64) *api.Chat {
+    request := api.GetChatRequest{ChatId: chatId}
+    resp := client.SendObject(request, API_ENDPOINT + BOT_TOKEN + GET_CHAT_PATH)
+    if resp == nil {
+        return nil // no response, should be logged
+    }
+
+    // parse response
+    decoder := json.NewDecoder(resp.Body)
+    var chatResp api.GetChatResponse
+    parseErr := decoder.Decode(&chatResp)
+    if parseErr != nil {
+        fmt.Println("Error parsing response ..." + parseErr.Error())
+        return nil
+    }
+
+    if (!chatResp.Ok) {
+        fmt.Println("Non-successful GetChat response ...")
+        return nil
+    }
+
+    return chatResp.Result
+}
+
+func (client *BotRestClient) GetChatMember(chatId int64, userId int64) *api.ChatMember {
+    request := api.GetChatMemberRequest{ChatId: chatId, UserId: userId}
+    resp := client.SendObject(request, API_ENDPOINT + BOT_TOKEN + GET_CHAT_MEMBER_PATH)
+    if resp == nil {
+        return nil // no response, should be logged
+    }
+
+    // parse response
+    decoder := json.NewDecoder(resp.Body)
+    var chatResp api.GetChatMemberResponse
+    parseErr := decoder.Decode(&chatResp)
+    if parseErr != nil {
+        fmt.Println("Error parsing response ..." + parseErr.Error())
+        return nil
+    }
+
+    if (!chatResp.Ok) {
+        fmt.Println("Non-successful GetChatMember response ...")
+        return nil
+    }
+
+    return chatResp.Result
 }
 
 func (client *BotRestClient) SendObject(request interface{}, url string) *http.Response {

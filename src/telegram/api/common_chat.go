@@ -1,5 +1,36 @@
 package api
 
+// Chat information retrieval request
+// This is used in getChat API method
+// Note that update fields are case-sensitive so denote them correctly
+type GetChatRequest struct {
+    // chat id to request info for
+    ChatId int64    `json:"chat_id"`
+}
+
+// Chat information retrieval response
+// This is a response to getChat API method
+type GetChatResponse struct {
+    // whether request succeeded
+    Ok bool
+    // chat requested
+    Result *Chat
+}
+
+// Chat member information retrieval request
+// This is used in getChatMember API method
+type GetChatMemberRequest struct {
+    ChatId int64    `json:"chat_id"`
+    UserId int64    `json:"user_id"`
+}
+
+type GetChatMemberResponse struct {
+    // whether request succeeded
+    Ok bool
+    // chat member requested
+    Result *ChatMember
+}
+
 type Chat struct {
     // Unique identifier for this chat. This number may be greater than 32 bits
     // and some programming languages may have difficulty/silent defects in interpreting it.

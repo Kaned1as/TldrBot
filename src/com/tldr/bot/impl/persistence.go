@@ -10,6 +10,7 @@ import (
     "github.com/mattn/go-sqlite3"
 )
 
+// ORM type for table `SCORES`
 type Score struct {
     Id uint64                           `db:"id, primarykey, autoincrement"`
     // ID from Telegram
@@ -18,6 +19,13 @@ type Score struct {
     Grade uint8
     // time when score was recorded
     Time time.Time
+}
+
+type ScoreStat struct {
+    // ID from Telegram
+    PersonId int64
+    // sum of all scores
+    TotalScored uint64
 }
 
 type PersistenceLayer struct {
@@ -60,6 +68,12 @@ func (pl *PersistenceLayer) GetScores(personId int64) (total int64, highest *Sco
         }
     }
 
+    return
+}
+
+func (pl *PersistenceLayer) GetTotals() (stats []ScoreStat) {
+    _, err := pl.database.Select(&stats, "select PersonId, sum(Grade) as TotalScored from scores group by PersonId order by TotalScored desc")
+    checkErr(err, "Failed to get total stats")
     return
 }
 

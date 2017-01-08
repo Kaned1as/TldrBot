@@ -7,6 +7,8 @@ import (
 
 const API_ENDPOINT string = "https://api.telegram.org/bot"
 const GET_UPDATES_PATH = "/getUpdates"
+const GET_CHAT_PATH = "/getChat"
+const GET_CHAT_MEMBER_PATH = "/getChatMember"
 const SEND_MESSAGE_PATH = "/sendMessage"
 const POLLING_INTERVAL = time.Millisecond * 300
 

@@ -80,6 +80,12 @@ func (poll *Poller) handleUpdate(update api.Update) {
 
     if msg.Text == "/stat" || msg.Text == "/stat@l33t_count_bot" {
         go poll.handleStat(msg)
+        return
+    }
+
+    if msg.Text == "/totals" || msg.Text == "/totals@l33t_count_bot" {
+        go poll.handleTotals(msg)
+        return
     }
 
     fmt.Printf("Got message with text: %#v\n", msg.Text)
@@ -132,6 +138,37 @@ func (poll *Poller) handleStat(msg *api.Message) {
     defer resp.Body.Close()
     fmt.Println(resp.Status)
     io.Copy(os.Stdout, resp.Body)
+}
+
+func (poll *Poller) handleTotals(msg *api.Message) {
+    totals := poll.db.GetTotals()
+
+    disablePreview := new(bool); *disablePreview = true
+    answer := api.SendMessage{
+        ChatId: msg.Chat.Id,
+        ParseMode: "Markdown",
+        ReplyToMessageId: &msg.Message_id,
+        DisableWebPagePreview: disablePreview}
+
+    // no stats available
+    if (len(totals) == 0) {
+        answer.Text = "No stats available for this chat! Sorry..."
+        poll.client.SendObject(answer, API_ENDPOINT + BOT_TOKEN + SEND_MESSAGE_PATH)
+        return
+    }
+
+    answer.Text = "Total stats for this chat members:\n"
+    counter := 0
+    for idx := range totals {
+        member := poll.client.GetChatMember(msg.Chat.Id, totals[idx].PersonId)
+        if member == nil { // no such person in this chat!
+            continue
+        }
+        counter++
+        answer.Text += fmt.Sprintf("  %d. %s - %d points\n", counter, member.User.First_name, totals[idx].TotalScored);
+    }
+
+    poll.client.SendObject(answer, API_ENDPOINT + BOT_TOKEN + SEND_MESSAGE_PATH)
 }
 
 func (poll *Poller) handleL33t(msg *api.Message, scored string, regex *regexp.Regexp) {
